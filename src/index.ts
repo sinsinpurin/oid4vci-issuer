@@ -4,6 +4,7 @@ import oid4vciConfig from "./.well-known/openid-credential-issuer.json";
 import dotenv from "dotenv";
 import { auth } from "express-oauth2-jwt-bearer";
 import { getSignedCredential } from "./credential";
+import { verifyToken } from "./jwt/verify";
 
 dotenv.config();
 
@@ -88,15 +89,18 @@ interface ICredentialRequest {
 
 app.post("/credential", jwtCheck, async (req, res) => {
     const { format, proof } = req.body as ICredentialRequest;
-    console.log(req.body);
     if (!format || !proof) {
         res.status(400).send("format or proof is missing");
     }
+    const { protectedHeader } = await verifyToken(proof.jwt);
 
     const { credential } = await getSignedCredential("BlockBaseVC", {
-        credentialSubject: { id: "did:ion:..." },
+        credentialSubject: { id: protectedHeader.kid, name: "test" },
     });
 
     res.json({ credential, format });
 });
-app.listen(8000, () => console.log("Server is running"));
+
+const port = process.env.PORT || 8000; // 環境変数からポートを取得し、存在しない場合は8000をデフォルトとします。
+
+app.listen(port, () => console.log(`Server is running on port ${port}`));

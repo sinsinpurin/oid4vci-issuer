@@ -6,8 +6,8 @@ const templates: any = {
     BlockBaseVC: BlockBaseVCTemplate,
 };
 
-export const credentialLoader = (id: string, params?: any) => {
-    return { ...templates[id], ...params };
+export const credentialLoader = (id: string) => {
+    return templates[id];
 };
 
 interface IGetSignedCredentialResponse {
@@ -18,14 +18,15 @@ interface IGetSignedCredentialResponse {
 
 export const getSignedCredential = async (
     credentialId: string,
-    param?: any,
+    credentialSubjectParam?: any,
 ): Promise<IGetSignedCredentialResponse> => {
-    const credentialTemplate = credentialLoader(credentialId, param);
+    let credentialPayload = credentialLoader(credentialId);
+    credentialPayload["credentialSubject"] = {
+        ...credentialPayload["credentialSubject"],
+        ...credentialSubjectParam,
+    };
+    console.log(credentialPayload);
     const { access_token, token_type } = await getAccessToken();
-    console.log(access_token);
-    console.log(
-        `${process.env.MATTR_TENANT_URL}/v2/credentials/web-semantic/sign`,
-    );
     const resp = await fetch(
         `${process.env.MATTR_TENANT_URL}/v2/credentials/web-semantic/sign`,
         {
@@ -35,7 +36,7 @@ export const getSignedCredential = async (
                 Authorization: `${token_type} ${access_token}`,
             },
             body: JSON.stringify({
-                payload: credentialTemplate,
+                payload: credentialPayload,
             }),
         },
     );
