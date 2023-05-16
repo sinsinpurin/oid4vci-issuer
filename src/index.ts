@@ -23,9 +23,8 @@ app.get("/", (_, res) => {
 app.get("/qr", async (_, res) => {
     try {
         const url = "openid-credential-offer://?credential_offer=";
-        //TODO: 変える
         const offerRequest = {
-            credential_issuer: "https://oid4vci-issuer.onrender.com",
+            credential_issuer: process.env.ISSUER_URL as string,
             credentials: ["aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"],
         };
         if (!url) {
@@ -78,8 +77,8 @@ app.get("/authorize", (req, res) => {
     url.searchParams.append("client_id", client_id);
     const prompt = "none";
     url.searchParams.append("prompt", prompt);
-    //TODO: 変える
-    const audience = "https://oid4vci-issuer.onrender.com";
+
+    const audience = process.env.ISSUER_URL as string;
     url.searchParams.append("audience", audience);
     res.redirect(url.toString());
 });
@@ -107,7 +106,7 @@ app.post("/token", async (req, res) => {
 });
 
 const jwtCheck = auth({
-    audience: "https://oid4vci-issuer.onrender.com",
+    audience: process.env.ISSUER_URL as string,
     issuerBaseURL: "https://dev-blockbase-mo.jp.auth0.com/",
     tokenSigningAlg: "RS256",
 });
