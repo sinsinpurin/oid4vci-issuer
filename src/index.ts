@@ -24,7 +24,7 @@ app.get("/qr", async (_, res) => {
     try {
         const url = "openid-credential-offer://?credential_offer=";
         const offerRequest = {
-            credential_issuer: process.env.ISSUER_URL as string,
+            credential_issuer: process.env.ISSUER_ENDPOINT as string,
             credentials: ["aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"],
         };
         if (!url) {
@@ -78,7 +78,7 @@ app.get("/authorize", (req, res) => {
     const prompt = "none";
     url.searchParams.append("prompt", prompt);
 
-    const audience = process.env.ISSUER_URL as string;
+    const audience = process.env.ISSUER_ENDPOINT as string;
     url.searchParams.append("audience", audience);
     res.redirect(url.toString());
 });
@@ -106,7 +106,7 @@ app.post("/token", async (req, res) => {
 });
 
 const jwtCheck = auth({
-    audience: process.env.ISSUER_URL as string,
+    audience: process.env.ISSUER_ENDPOINT as string,
     issuerBaseURL: "https://dev-blockbase-mo.jp.auth0.com/",
     tokenSigningAlg: "RS256",
 });
