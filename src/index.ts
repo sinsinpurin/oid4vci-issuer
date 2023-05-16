@@ -1,6 +1,7 @@
 import express from "express";
 import QRCode from "qrcode";
 import oid4vciConfig from "./.well-known/openid-credential-issuer.json";
+import sample from "./.well-known/sample.json";
 import dotenv from "dotenv";
 import { auth } from "express-oauth2-jwt-bearer";
 import { getSignedCredential } from "./credential";
@@ -46,7 +47,7 @@ app.get("/qr", async (_, res) => {
  * This endpoint is used by the wallet to get the configuration of the issuer.
  */
 app.get("/.well-known/openid-credential-issuer", (_, res) => {
-    res.json(oid4vciConfig);
+    res.json(sample);
 });
 
 app.get("/authorize", (req, res) => {
