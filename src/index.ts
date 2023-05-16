@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import { auth } from "express-oauth2-jwt-bearer";
 import { getSignedCredential } from "./credential";
 import { verifyToken } from "./jwt/verify";
+import fetch from "node-fetch";
 
 dotenv.config();
 
@@ -22,6 +23,7 @@ app.get("/", (_, res) => {
 app.get("/qr", async (_, res) => {
     try {
         const url = "openid-credential-offer://?credential_offer=";
+        //TODO: 変える
         const offerRequest = {
             credential_issuer: "http://localhost:8000",
             credentials: ["aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"],
@@ -49,7 +51,15 @@ app.get("/.well-known/openid-credential-issuer", (_, res) => {
 });
 
 app.get("/authorize", (req, res) => {
-    const { scope, response_type, state, nonce, redirect_uri } = req.query;
+    const {
+        scope,
+        response_type,
+        state,
+        nonce,
+        redirect_uri,
+        code_challenge_method,
+        code_challenge,
+    } = req.query;
     const url = new URL(`https://dev-blockbase-mo.jp.auth0.com/authorize`);
     if (typeof scope === "string") url.searchParams.append("scope", scope);
     if (typeof response_type === "string")
@@ -58,19 +68,42 @@ app.get("/authorize", (req, res) => {
     if (typeof nonce === "string") url.searchParams.append("nonce", nonce);
     if (typeof redirect_uri === "string")
         url.searchParams.append("redirect_uri", redirect_uri);
+    if (typeof code_challenge_method === "string")
+        url.searchParams.append("code_challenge_method", code_challenge_method);
+    if (typeof code_challenge === "string")
+        url.searchParams.append("code_challenge", code_challenge);
 
     // /.well-known/openid-credential-issuer から取れないデータはここで追加する
-    const client_id = "obaBnfcd87JJGPeXJntkGIapkVochwD5";
+    const client_id = process.env.AUTH0_CLIENT_ID as string;
     url.searchParams.append("client_id", client_id);
     const prompt = "none";
     url.searchParams.append("prompt", prompt);
+    //TODO: 変える
     const audience = "http://localhost:8000";
     url.searchParams.append("audience", audience);
     res.redirect(url.toString());
 });
 
-app.post("/token", (_, res) => {
-    res.json({});
+app.post("/token", async (req, res) => {
+    const { grant_type, client_id, code_verifier, code, redirect_uri } =
+        req.body;
+    const url = new URL(`https://dev-blockbase-mo.jp.auth0.com/oauth/token`);
+
+    const resp = await fetch(url.toString(), {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            grant_type,
+            client_id,
+            code_verifier,
+            code,
+            redirect_uri,
+        }),
+    });
+
+    res.json(await resp.json());
 });
 
 const jwtCheck = auth({
