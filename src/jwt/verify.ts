@@ -29,6 +29,14 @@ export const verifyToken = async (
     );
 
     const decoded = await jwtVerify(token, jwk);
-    // console.log((await resp.json()).didDocument);
     return decoded;
+};
+
+export const getDid = (token: string): string => {
+    const { header } = jsonwebtoken.decode(token, {
+        complete: true,
+    }) as jsonwebtoken.Jwt;
+    console.log(header);
+    const did = header.kid!.split("#")[0];
+    return did;
 };

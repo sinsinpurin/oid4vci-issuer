@@ -23,9 +23,8 @@ export const getSignedCredential = async (
     let credentialPayload = credentialLoader(credentialId);
     credentialPayload["credentialSubject"] = {
         ...credentialPayload["credentialSubject"],
-        ...credentialSubjectParam,
+        ...credentialSubjectParam["credentialSubject"],
     };
-    console.log(credentialPayload);
     const { access_token, token_type } = await getAccessToken();
     const resp = await fetch(
         `${process.env.MATTR_TENANT_URL}/v2/credentials/web-semantic/sign`,
@@ -40,6 +39,8 @@ export const getSignedCredential = async (
             }),
         },
     );
-
-    return await (resp.json() as Promise<IGetSignedCredentialResponse>);
+    const credential =
+        await (resp.json() as Promise<IGetSignedCredentialResponse>);
+    console.log(credential);
+    return credential;
 };
